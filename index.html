@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Калькулятор первого месяца в Таиланде</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1f2937;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f4f8;
+    --muted: #8b949e;
+    --accent: #38d9a9;
+    --accent2: #20c997;
+    --warn: #f59e0b;
+    --danger: #f87171;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 16px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header { margin-bottom: 20px; }
+
+  .header-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(56,217,169,0.1);
+    border: 1px solid rgba(56,217,169,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .header p { font-size: 13px; color: var(--muted); }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 20px 0 10px;
+  }
+
+  .toggle-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .toggle-btn {
+    padding: 8px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'Manrope', sans-serif;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--bg2);
+    color: var(--muted);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toggle-btn.active {
+    background: rgba(56,217,169,0.12);
+    border-color: rgba(56,217,169,0.4);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .items { display: flex; flex-direction: column; gap: 8px; }
+
+  .item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+
+  .item.zero { opacity: 0.5; }
+
+  .item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .item-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .item-vals { text-align: right; }
+
+  .item-thb {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'Unbounded', sans-serif;
+  }
+
+  .item-thb.is-zero { color: var(--muted); }
+
+  .item-usd { font-size: 11px; color: var(--muted); }
+
+  .slider-wrap { position: relative; }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg3);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px rgba(56,217,169,0.25);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+
+  .track-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--accent);
+    pointer-events: none;
+  }
+
+  .total-card {
+    margin-top: 20px;
+    background: linear-gradient(135deg, rgba(56,217,169,0.08) 0%, rgba(56,217,169,0.03) 100%);
+    border: 1px solid rgba(56,217,169,0.25);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .total-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .total-thb {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .total-convert { font-size: 13px; color: var(--muted); }
+
+  .breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .b-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .b-name { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .b-val { font-size: 13px; font-weight: 600; color: var(--text); }
+
+  .b-bar {
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+
+  .b-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  .verdict {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .verdict.ok {
+    background: rgba(56,217,169,0.08);
+    border: 1px solid rgba(56,217,169,0.2);
+    color: #6ee7b7;
+  }
+
+  .verdict.warn {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    color: #fcd34d;
+  }
+
+  .verdict strong { font-weight: 600; display: block; margin-bottom: 3px; }
+
+  .footer {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .cta-btn {
+    display: block;
+    margin: 10px auto 0;
+    padding: 12px 24px;
+    background: rgba(56,217,169,0.12);
+    border: 1px solid rgba(56,217,169,0.35);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+
+  .cta-btn:active { background: rgba(56,217,169,0.2); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-tag">🇹🇭 Таиланд</div>
+  <h1>Калькулятор первого месяца</h1>
+  <p>Подвигайте ползунки — увидите реальный бюджет под вашу ситуацию. Ненужные статьи можно обнулить.</p>
+</div>
+
+<div class="section-label">Тип жилья и образ жизни</div>
+<div class="toggle-row">
+  <button class="toggle-btn active" onclick="setMode('budget')">🌴 Бюджет</button>
+  <button class="toggle-btn" onclick="setMode('mid')">⚡ Среднее</button>
+  <button class="toggle-btn" onclick="setMode('comfort')">✨ Комфорт</button>
+</div>
+
+<div class="section-label">Статьи расходов</div>
+<div class="items" id="items-list"></div>
+
+<div class="total-card">
+  <div class="total-label">Итого в месяц</div>
+  <div class="total-thb" id="total-thb">฿0</div>
+  <div class="total-convert" id="total-conv">≈ $0 · ₽0</div>
+  <div class="breakdown" id="breakdown"></div>
+</div>
+
+<div class="verdict" id="verdict"></div>
+
+<div class="footer">
+  Цены актуальны на 2026 год · курс ฿1 ≈ $0.030 · ₽3.1<br>
+  <a class="cta-btn" href="https://t.me/dantowin">Остались вопросы? Напишите мне →</a>
+</div>
+
+<script>
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  }
+
+  const THB_USD = 33;
+  const THB_RUB = 3.1;
+
+  const items = [
+    { key: 'housing',   name: 'Жильё',      hint: 'Аренда + депозит ÷ 12',    min: 0, max: 50000, step: 500, cats: [8000, 18000, 30000], color: '#3b82f6' },
+    { key: 'food',      name: 'Еда',         hint: 'Стрит-фуд, кафе, готовка', min: 0, max: 25000, step: 500, cats: [7000, 12000, 18000], color: '#10b981' },
+    { key: 'transport', name: 'Транспорт',   hint: 'Скутер или такси',          min: 0, max: 10000, step: 200, cats: [2000,  4000,  7000], color: '#f59e0b' },
+    { key: 'visa',      name: 'Виза',        hint: 'Тур.виза / граница / мес',  min: 0, max: 15000, step: 500, cats: [4000,  6000, 10000], color: '#a78bfa' },
+    { key: 'sim',       name: 'Связь',       hint: 'SIM AIS/DTAC + coworking',  min: 0, max:  5000, step: 100, cats: [ 800,  1500,  2500], color: '#38bdf8' },
+    { key: 'insurance', name: 'Страховка',   hint: 'SafetyWing / Cigna',        min: 0, max:  8000, step: 200, cats: [1800,  3000,  5000], color: '#fb7185' },
+    { key: 'misc',      name: 'Разное',      hint: 'Аптека, экскурсии, резерв', min: 0, max: 15000, step: 500, cats: [3000,  5000,  8000], color: '#94a3b8' },
+  ];
+
+  let values = {};
+
+  function fmt(n) {
+    if (n === 0) return '฿0';
+    return '฿' + Math.round(n).toLocaleString('ru-RU');
+  }
+  function pct(v, total) { return total > 0 ? Math.round(v / total * 100) : 0; }
+
+  function renderItems() {
+    const list = document.getElementById('items-list');
+    list.innerHTML = '';
+    items.forEach(it => {
+      const v = values[it.key];
+      const fillPct = it.max > 0 ? (v / it.max) * 100 : 0;
+      const isZero = v === 0;
+      const div = document.createElement('div');
+      div.className = 'item' + (isZero ? ' zero' : '');
+      div.id = 'item-' + it.key;
+      div.innerHTML = `
+        <div class="item-top">
+          <div>
+            <div class="item-name">${it.name}</div>
+            <div class="item-hint">${it.hint}</div>
+          </div>
+          <div class="item-vals">
+            <div class="item-thb${isZero ? ' is-zero' : ''}" id="vl-${it.key}">${isZero ? 'не учитываю' : fmt(v)}</div>
+            <div class="item-usd" id="ud-${it.key}">${isZero ? '' : '≈ $' + Math.round(v / THB_USD)}</div>
+          </div>
+        </div>
+        <div class="slider-wrap">
+          <div class="track-fill" id="tf-${it.key}" style="width:${fillPct}%"></div>
+          <input type="range" id="sl-${it.key}" min="0" max="${it.max}" step="${it.step}" value="${v}"
+            oninput="onSlide('${it.key}', this.value, ${it.max})">
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function onSlide(key, val, max) {
+    val = parseInt(val);
+    values[key] = val;
+    const isZero = val === 0;
+    const vlEl = document.getElementById('vl-' + key);
+    const udEl = document.getElementById('ud-' + key);
+    const itemEl = document.getElementById('item-' + key);
+    vlEl.textContent = isZero ? 'не учитываю' : fmt(val);
+    vlEl.className = 'item-thb' + (isZero ? ' is-zero' : '');
+    udEl.textContent = isZero ? '' : '≈ $' + Math.round(val / THB_USD);
+    itemEl.className = 'item' + (isZero ? ' zero' : '');
+    const fp = max > 0 ? (val / max) * 100 : 0;
+    document.getElementById('tf-' + key).style.width = fp + '%';
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const total = Object.values(values).reduce((a, b) => a + b, 0);
+    const usd = Math.round(total / THB_USD);
+    const rub = Math.round(total * THB_RUB / 1000) * 1000;
+    document.getElementById('total-thb').textContent = fmt(total);
+    document.getElementById('total-conv').textContent = '≈ $' + usd.toLocaleString('ru-RU') + ' · ₽' + rub.toLocaleString('ru-RU');
+    renderBreakdown(total);
+    renderVerdict(usd);
+  }
+
+  function renderBreakdown(total) {
+    const bd = document.getElementById('breakdown');
+    bd.innerHTML = '';
+    items.forEach(it => {
+      const v = values[it.key];
+      if (v === 0) return;
+      const p = pct(v, total);
+      const d = document.createElement('div');
+      d.className = 'b-item';
+      d.innerHTML = `
+        <div class="b-name">${it.name}</div>
+        <div class="b-val">${p}%</div>
+        <div class="b-bar"><div class="b-fill" style="width:${p}%;background:${it.color}"></div></div>
+      `;
+      bd.appendChild(d);
+    });
+  }
+
+  function renderVerdict(usd) {
+    const v = document.getElementById('verdict');
+    if (usd === 0) {
+      v.className = 'verdict';
+      v.innerHTML = '';
+      return;
+    }
+    if (usd < 700) {
+      v.className = 'verdict ok';
+      v.innerHTML = '<strong>Реально — это бюджетный уровень</strong>Стрит-фуд, скутер, простое жильё. Типичный старт для большинства переезжающих.';
+    } else if (usd < 1500) {
+      v.className = 'verdict ok';
+      v.innerHTML = '<strong>Комфортный бюджет для удалёнщика</strong>Хорошее кондо, кафе, страховка, подушка безопасности — всё входит.';
+    } else {
+      v.className = 'verdict warn';
+      v.innerHTML = '<strong>Выше среднего — уровень комфорт+</strong>Таиланд такое предлагает, но это уже не про экономию. Есть где оптимизировать без потери качества.';
+    }
+  }
+
+  function setMode(mode) {
+    document.querySelectorAll('.toggle-btn').forEach((b, i) => {
+      b.classList.toggle('active', ['budget','mid','comfort'][i] === mode);
+    });
+    const idx = { budget: 0, mid: 1, comfort: 2 }[mode];
+    items.forEach(it => { values[it.key] = it.cats[idx]; });
+    renderItems();
+    updateTotal();
+  }
+
+  setMode('budget');
+</script>
+</body>
+</html>
